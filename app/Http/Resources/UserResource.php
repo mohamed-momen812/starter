@@ -15,17 +15,18 @@ class  UserResource extends JsonResource
     public function toArray($request)
     {
         return [
-            "id" => $this->id ,
+            "id"         => $this->id ,
             "first_name" => $this->first_name ,
-            "last_name" => $this->last_name ,
-            "email" => $this->email ,
-            "image" => $this->image ? url($this->image) : null ,
+            "last_name"  => $this->last_name ,
+            "email"      => $this->email ,
+            "image"      => $this->image ? url($this->image) : null ,
+            "created_at" => $this->created_at->format('d-m-y') ,
+            // TODO : add roles and permissions
             // "type"  => $this->type,
             // 'role' => RoleResource::collection($this->rolesWithPermissions),
             // "added_permissions"    => $this->permissions->map(function ($permission){
             //     return ['name' => $permission->name];
             // }),
-            "created_at" => $this->created_at->format('d-m-y') ,
         ];
     }
 }

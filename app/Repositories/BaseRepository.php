@@ -14,6 +14,15 @@ class BaseRepository implements BaseRepositoryInterface
     {
         $this->model = $model;
     }
+    public function all(): Collection
+    {
+        return $this->model->all();
+    }
+    
+    public function find($id): ?Model
+    {
+        return $this->model->find($id);
+    }
 
     public function create(array $attributes): Model
     {
@@ -30,14 +39,11 @@ class BaseRepository implements BaseRepositoryInterface
         return $data;
     }
 
-    public function find($id): ?Model
+    public function destroy($id)
     {
-        return $this->model->find($id);
-    }
+        $model = $this->model->findOrFail($id);
 
-    public function all(): Collection
-    {
-        return $this->model->all();
+        return $model->delete();
     }
 
     public function allWithPaginate($number = 10){
@@ -46,13 +52,6 @@ class BaseRepository implements BaseRepositoryInterface
 
     public function allWithPaginateExcept($id, $number = 10){
         return $this->model->where('id', '!=',  $id)->paginate($number);
-    }
-
-    public function destroy($id)
-    {
-        $model = $this->model->findOrFail($id);
-
-        return $model->delete();
     }
 
     public function groupBy($key){

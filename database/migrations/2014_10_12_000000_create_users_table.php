@@ -20,6 +20,12 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+
+
+            // TODO  : add roles
+
+            // TODO  : add permissions
+
         });
     }
 

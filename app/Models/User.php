@@ -43,4 +43,18 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+    public function products() {
+        return $this->hasMany(Product::class);
+    }
+
+    public function reviews() {
+        return $this->hasMany(Review::class);
+    }
+
+    // TODO add image to user profile
+    // public function image() {
+    //     return $this->morphOne(Image::class, 'imagable');
+    // }
 }
