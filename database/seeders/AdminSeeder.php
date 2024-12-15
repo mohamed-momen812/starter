@@ -19,6 +19,7 @@ class AdminSeeder extends Seeder
 
     private function createAdmin() {
         return [
+            'type' => 'admin',
             'first_name' => 'mohamed',
             'last_name' => 'momen',
             'email' => 'momen@admin.com',

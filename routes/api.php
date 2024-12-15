@@ -20,7 +20,10 @@ Route::group([
             });
                 
         // product routes
-        Route::resource('products', ProductController::class);
+        // Route::resource('products', ProductController::class);
+        Route::middleware('role:edit posts')->get('products', function () {
+            return 'ok';
+        });
     });
 
 
