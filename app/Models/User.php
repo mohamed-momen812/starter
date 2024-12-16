@@ -45,7 +45,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    protected $guard_name = 'sanctum'; // default guard is sanctum for spatie permission
+    protected $guard_name = 'sanctum'; // spatie permission will use this guard as its mechanezi
 
 
     public function products() {

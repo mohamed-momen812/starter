@@ -3,7 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Route;
-
+use Spatie\Permission\Models\Permission;
 
 Route::group([
     'middleware' => ['api', 'auth:sanctum']
@@ -18,12 +18,20 @@ Route::group([
                 Route::post('/logout', [AuthController::class, 'logout']);
                 Route::post('/refresh', [AuthController::class, 'refresh']);
             });
-                
+
         // product routes
-        // Route::resource('products', ProductController::class);
-        Route::middleware('role:edit posts')->get('products', function () {
+        Route::resource('products', ProductController::class);
+
+
+        // permission routes
+        Route::middleware('can:edit_user')->get('permission', function () {
+            if(auth()->user()->can('edit_user')){
+                return 'can';
+            }
+
             return 'ok';
         });
+
     });
 
 

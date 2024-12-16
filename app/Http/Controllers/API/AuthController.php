@@ -30,9 +30,9 @@ class AuthController extends BaseController
 
     public function login(LoginRequest $request){
 
-        if (!auth()->attempt($request->validated())) {
-            return $this->sendResponse( response: 'Credintials fail' , code: 401 );
-        }
+        if (!auth('web')->attempt($request->validated())) {
+            return $this->sendResponse( response: 'Credintials failed' , code: 401 );
+        } // use guard web cause method attempt doesn't work with guard api
 
         $token = auth()->user()->createToken('MyApp')->plainTextToken;
 

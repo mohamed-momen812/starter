@@ -17,15 +17,19 @@ class RolesAndPermissionsSeeder extends Seeder
         DB::table('roles')->delete();
         DB::table('permissions')->delete();
         DB::table('role_has_permissions')->delete();
+        DB::table('role_has_permissions')->delete();
+        DB::table('role_has_permissions')->delete();
 
-        // create permissions
-        $moduleCollection = [ 
-            'user',  
+
+
+        // create permissions for all modules
+        $moduleCollection = [
+            'user',
         ];
 
         // loop through modules and create permissions
         foreach ($moduleCollection as $module) {
-            Permission::create(['name' => ' view_' . $module ]);
+            Permission::create(['name' => 'view_' . $module ]);
             Permission::create(['name' => 'create_' . $module  ]);
             Permission::create(['name' => 'edit_' . $module  ]);
             Permission::create(['name' => 'delete_' . $module  ]);
@@ -35,11 +39,8 @@ class RolesAndPermissionsSeeder extends Seeder
         // create roles and assign created permissions
         $adminRole = Role::create(['name' => 'Admin']);
         $userRole = Role::create(['name' => 'User']);
-        $ownerRole = Role::create(['name' => 'Owner']);
-        $managerRole = Role::create(['name' => 'Manager']);
-        $directorRole = Role::create(['name' => 'Director']);
 
-        
+
         $allPermissions = Permission::all();
 
         // give all permissions to owner
@@ -49,17 +50,18 @@ class RolesAndPermissionsSeeder extends Seeder
         if($user)
             $user->assignRole($adminRole->name);
 
-        
+
 
         // give some permissions to user and assign role to each user
         $userRole->syncPermissions($allPermissions);
-      
+
         $users = User::where('type', 'user')->get();
         if(!empty($users)){
             foreach($users as $user){
                 $user->assignRole($userRole->name);
             }
-        }  
+        }
 
     }
+    // just give role to user and give permission to role it is the best practice
 }
