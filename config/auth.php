@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'sanctum', // all ways i will use sanctum guard, no need  for this but spati permission pakage need the defualt guard to seed guard_name
+        'guard' => 'sanctum', // all ways i will use sanctum guard, no need  for this but spatie permission pakage need the defualt guard to seed guard_name
         'passwords' => 'users',
     ],
 

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Module;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -17,43 +18,76 @@ class RolesAndPermissionsSeeder extends Seeder
         DB::table('roles')->delete();
         DB::table('permissions')->delete();
         DB::table('role_has_permissions')->delete();
-        DB::table('role_has_permissions')->delete();
-        DB::table('role_has_permissions')->delete();
-
-
+        DB::table('model_has_roles')->delete();
+        DB::table('model_has_permissions')->delete();
 
         // create permissions for all modules
-        $moduleCollection = [
+        $moduleCollection = collect([
             'user',
-        ];
+            'product',
+            'order',
+            'cart',
+            'category',
+            'review',
+            'permissions',
+            'roles',
+        ]);
 
         // loop through modules and create permissions
-        foreach ($moduleCollection as $module) {
-            Permission::create(['name' => 'view_' . $module ]);
-            Permission::create(['name' => 'create_' . $module  ]);
-            Permission::create(['name' => 'edit_' . $module  ]);
-            Permission::create(['name' => 'delete_' . $module  ]);
-        }
+        $moduleCollection->each(function ($module) {
 
+            // create module and permissions for it
+            Module::create(['name' => $module]);
+
+            Permission::firstOrCreate([
+                'name' => "view_$module",
+            ]);
+            Permission::firstOrCreate([
+                'name' => "create_$module",
+            ]);
+            Permission::firstOrCreate([
+                'name' => "update_$module",
+            ]);
+            Permission::firstOrCreate([
+                'name' => "delete_$module",
+            ]);
+
+
+            // attach permissions to the module for business reasons
+            $ids = [];
+
+            $ids[] = Permission::where('name', "view_$module")->first()->id;
+            $ids[] = Permission::where('name', "create_$module")->first()->id;
+            $ids[] = Permission::where('name', "update_$module")->first()->id;
+            $ids[] = Permission::where('name', "delete_$module")->first()->id;
+
+            $mod = Module::where('name', $module)->first();
+            $mod->permissions()->attach($ids);
+        });
 
         // create roles and assign created permissions
         $adminRole = Role::create(['name' => 'Admin']);
         $userRole = Role::create(['name' => 'User']);
 
-
         $allPermissions = Permission::all();
 
-        // give all permissions to owner
+        // give all permissions to Admins
         $adminRole->syncPermissions($allPermissions);
 
-        $user = User::where('type', 'admin')->first();
-        if($user)
-            $user->assignRole($adminRole->name);
+        $admins = User::where('type', 'admin')->get();
+        if(!empty($admins)){
+            foreach($admins as $admin){
+                $admin->assignRole($adminRole->name);
+            }
+        }
 
+        // give all views permissions to Users
+        $userPermissions = [];
+        $moduleCollection->each(function ($module) use (&$userPermissions) {
+            $userPermissions[] = Permission::where('name', "view_$module")->first();
+        });
 
-
-        // give some permissions to user and assign role to each user
-        $userRole->syncPermissions($allPermissions);
+        $userRole->syncPermissions($userPermissions);
 
         $users = User::where('type', 'user')->get();
         if(!empty($users)){

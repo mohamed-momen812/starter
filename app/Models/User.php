@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -19,9 +18,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'type',
         'first_name',
         'last_name',
         'email',
+        'image',
         'password',
     ];
 
@@ -45,9 +46,15 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    protected $guard_name = 'sanctum'; // spatie permission will use this guard as its mechanezi
+    protected $guard_name = 'sanctum'; // spatie permission will use this guard as its mechanezim
 
+    // Accessor for user full name
+    public function getNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
 
+    // Relationships
     public function products() {
         return $this->hasMany(Product::class);
     }
@@ -55,6 +62,18 @@ class User extends Authenticatable
     public function reviews() {
         return $this->hasMany(Review::class);
     }
+
+    public function rolesWithPermissions()
+    {
+        return $this->roles()->with('permissions');
+    }
+
+    public function addedPermissions()
+    {
+        return $this->permissions()->get();
+    }
+
+
 
     // TODO add image to user profile
     // public function image() {

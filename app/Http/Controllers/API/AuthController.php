@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Traits\ApiTrait;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController extends BaseController
+class AuthController extends Controller
 {
+
+    use ApiTrait;
+
     public $userRepo;
 
     public function __construct(UserRepository $userRepository){
@@ -21,32 +26,35 @@ class AuthController extends BaseController
 
         $userData = array_merge( $request->validated(), ['password' => bcrypt($request->password) ] );
 
+        // TODO: handle image upload
+
         $user = $this->userRepo->create($userData);
 
-        // $user->assignRole( "Owner" );
+        $user->assignRole( "User" );
+        // TODO: make gate to assign role admin
 
-        return $this->sendResponse(['user' => new UserResource($user)], 'User register success', 201);
+        return $this->responseJsonSuccess(['user' => new UserResource($user)], 'User successfully registered', 201);
     }
 
     public function login(LoginRequest $request){
 
         if (!auth('web')->attempt($request->validated())) {
-            return $this->sendResponse( response: 'Credintials failed' , code: 401 );
+            return $this->responseJsonFailed( 'Credintials failed' ,  401 );
         } // use guard web cause method attempt doesn't work with guard api
 
         $token = auth()->user()->createToken('MyApp')->plainTextToken;
 
-        return $this->sendResponse([
+        return $this->responseJsonSuccess([
             'access_token' => $token,
             'user' => new UserResource(auth()->user()),
-        ], "logged in successfully");
+        ], " User logged in successfully");
     }
 
     public function logout() {
         $user = auth()->user();
         $user->currentAccessToken()->delete();
 
-        return $this->sendResponse([], 'User successfully signed out');
+        return $this->responseJsonSuccess([], 'User successfully signed out');
     }
 
      public function refresh() {
@@ -55,7 +63,7 @@ class AuthController extends BaseController
 
         $token = $user->createToken('MyApp')->plainTextToken;
 
-        return $this->sendResponse([
+        return $this->responseJsonSuccess([
             'access_token' => $token,
             'user' => new UserResource(auth()->user()),
         ], "token refresh successfully");
@@ -71,16 +79,13 @@ class AuthController extends BaseController
         $user = auth()->user();
 
         if (!Hash::check($request->old_password, $user->password)) {
-            return $this->sendResponse([], 'Old password does not match.', 401);
+            return $this->responseJsonFailed( 'Old password does not match.', 401);
         }
 
         $user->password = Hash::make($request->new_password);
 
         $user->save();
 
-        return $this->sendResponse([new UserResource($user)], 'Password changed successfully', 200);
+        return $this->responseJsonSuccess(['user' => new UserResource($user)], 'Password changed successfully', 200);
     }
-
-
-
 }
