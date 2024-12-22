@@ -42,10 +42,6 @@ class RoleController extends Controller
      */
     public function store(RoleRequest $request)
     {
-        if (! Gate::allows('create-role')) {
-            return $this->responseJsonFailed('You do not have permission to create role', 403,);
-        }
-
         $role = $this->roleRepo->create($request->validated());
 
         if($request->permission_ids != null){
@@ -76,10 +72,6 @@ class RoleController extends Controller
      */
     public function update(RoleRequest $request, $id)
     {
-        if (! Gate::allows('update-role')) {
-            return $this->responseJsonFailed('You do not have permission to update role', 403,);
-        }
-
         $role = $this->roleRepo->update($request->except('permission_ids','_method') , $id);
 
         if($request->permission_ids != null){
@@ -100,10 +92,6 @@ class RoleController extends Controller
      */
     public function destroy($id)
     {
-        if (! Gate::allows('delete-role')) {
-            return $this->responseJsonFailed('You do not have permission to delete role', 403,);
-        }
-
         $role = $this->roleRepo->destroy($id);
 
         return $this->responseJson();

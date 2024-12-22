@@ -50,10 +50,6 @@ class PermissionController extends Controller
      */
     public function store(PermissionRequest $request)
     {
-        if (! Gate::allows('create-permission')) {
-            return $this->responseJsonFailed('You do not have permission to create permission', 403,);
-        }
-
         $permission = $this->permissionRepo->create($request->validated());
 
         if ($request->role_ids != null){
@@ -85,11 +81,6 @@ class PermissionController extends Controller
      */
     public function update(PermissionRequest $request, $id)
     {
-
-        if (! Gate::allows('update-permission')) {
-            return $this->responseJsonFailed('You do not have permission to update permission', 403,);
-        }
-
         $permission = $this->permissionRepo->update($request->except('_method','role_ids') , $id);
 
         if ($request->role_ids != null){
@@ -110,21 +101,12 @@ class PermissionController extends Controller
      */
     public function destroy($id)
     {
-
-        if (! Gate::allows('delete-permission')) {
-            return $this->responseJsonFailed('You do not have permission to delete permission', 403,);
-        }
-
         $permission = $this->permissionRepo->destroy($id);
         return $this->responseJsonSuccess();
     } // TODO this method doesn work
 
     public function getPermissions($id)
     {
-        if (! Gate::allows('get-user-permissions')) {
-            return $this->responseJsonFailed('You do not have permission to view permission', 403,);
-        }
-
         $user = User::where('id', $id)->get(); // must be get to retrive user as collection not object
 
         if($user == null) return $this->responseJsonFailed("User not found");
@@ -134,10 +116,6 @@ class PermissionController extends Controller
 
     public function updatePermissions(Request $request, $id)
     {
-        if (! Gate::allows('update-user-permission')) {
-            return $this->responseJsonFailed('You do not have permission to update permission', 403,);
-        }
-
         $user = $this->userRepo->find($id);
 
         if($user == null) return $this->responseJsonFailed("User not found");
