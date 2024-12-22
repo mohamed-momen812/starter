@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RegisterRequest;
 use App\Traits\ApiTrait;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -23,17 +25,21 @@ class AuthController extends Controller
     }
 
     public function register(RegisterRequest $request) {
+        $userData = $this->prepareUserData($request);
 
-        $userData = array_merge( $request->validated(), ['password' => bcrypt($request->password) ] );
+        $user = DB::transaction(function () use ($userData, $request) {
+            $user = $this->userRepo->create($userData);
 
-        // TODO: handle image upload
+            $this->handleImageUpload($request, $user);
 
-        $user = $this->userRepo->create($userData);
+            event(new Registered($user));
 
-        $user->assignRole( "User" );
-        // TODO: make gate to assign role admin
-
-        return $this->responseJsonSuccess(['user' => new UserResource($user)], 'User successfully registered', 201);
+            return $user;
+        });
+        
+        return $user
+        ? $this->responseJsonSuccess(['user' => new UserResource($user)], 'User successfully registered', 201)
+        : $this->responseJsonFailed('Failed to register user.');
     }
 
     public function login(LoginRequest $request){
@@ -87,5 +93,24 @@ class AuthController extends Controller
         $user->save();
 
         return $this->responseJsonSuccess(['user' => new UserResource($user)], 'Password changed successfully', 200);
+    }
+
+    // custom functions
+    Private function handleImageUpload($request, $user) {
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('images', 'public');
+            $user->images()->create(['path' => $path]);
+        }
+    } 
+    
+    private function prepareUserData($request)
+    {
+        $data = $request->except(['image', 'password']);
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        return $data;
     }
 }

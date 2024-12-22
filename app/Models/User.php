@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
@@ -18,7 +19,6 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'type',
         'first_name',
         'last_name',
         'email',
@@ -73,10 +73,8 @@ class User extends Authenticatable
         return $this->permissions()->get();
     }
 
-
-
-    // TODO add image to user profile
-    // public function image() {
-    //     return $this->morphOne(Image::class, 'imagable');
-    // }
+    public function images()
+    {
+        return $this->morphMany(Image::class, 'imageable');
+    }
 }

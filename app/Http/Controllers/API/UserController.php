@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Interfaces\UserRepositoryInterface;
 use App\Traits\ApiTrait;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
@@ -27,32 +29,26 @@ class UserController extends Controller
         $users = $this->userRepo->all();
 
         if (!empty($users)) return $this->responseJsonSuccess(UserResource::collection($users));
-
         return $this->responseJsonFailed("No users here", 404);
     }
 
     public function store(UserRequest $request)
     {
-        $data = $request->except('password');
+        $data = $this->prepareUserData($request);
 
-        $data['password'] = Hash::make($request->password);
+        $user = DB::transaction(function () use ($data, $request) {
+            $user = $this->userRepo->create($data);
 
-        $user = $this->userRepo->create($data);
+            $this->handleImageUpload($request, $user);
+            $this->assignPermissions($request, $user);
 
-        // TODO  make gate to assign admin role
-        // TODO  handle image upload
-        $user->assignRole( $request->type );
+            event(new Registered($user));
 
-        if ($request->permission_ids) {
-            $permissions = Permission::whereIn('id', $request->permission_ids)->get();
-            foreach ($permissions as $permission) {
-                $user->givePermissionTo($permission->name);
-            }
-        }
-
-        return ($user != null ) ?  $this->responseJsonSuccess(new UserResource($user), 'User Created successfuly') : $this->responseJsonFailed() ;
+            return $user;
+        });
+        
+        return ($user != null ) ?  $this->responseJsonSuccess(new UserResource($user), 'User Created successfuly') : $this->responseJsonFailed('Failed to create user.', 404); ;
     }
-
 
     /**
      * Display the specified resource.
@@ -63,7 +59,7 @@ class UserController extends Controller
     public function show($id)
     {
         $user = $this->userRepo->find($id);
-        return $user ? $this->responseJsonSuccess(new UserResource($user)) : $this->responseJsonFailed( "user not found") ;
+        return $user ? $this->responseJsonSuccess(new UserResource($user)) : $this->responseJsonFailed( "user not found", 404); ;
     }
 
     /**
@@ -76,30 +72,26 @@ class UserController extends Controller
     public function update(UserRequest $request, $id)
     {
         $user = $this->userRepo->find($id);
-
-        $data = $request->except(['permission_ids', '_method']);
-
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+        if (!$user) {
+            return $this->responseJsonFailed('User not found.', 404);
         }
 
-        // TODO  handle image upload
-        $user = $this->userRepo->update($data, $id);
+        $data = $this->prepareUserData($request);
 
-        if ($request->filled('type')) {
-            $user->removeRole($user->type);
-            $user->assignRole($request->type);
-        }
+        $user = DB::transaction(function () use ($data, $request, $id) {
+            $user = $this->userRepo->update( $data, $id);
 
-        if ($request->filled('permission_ids')) {
-            $permissions = Permission::whereIn('id', $request->permission_ids)->pluck('name');
-            foreach ($permissions as $permission) {
-                $user->givePermissionTo($permission);
-            }
-        }
+            $this->handleImageUpload($request, $user);
+            $this->assignPermissions($request, $user);
 
-        return $user ? $this->responseJsonSuccess(new UserResource($user)) : $this->responseJsonFailed();
+            return $user;
+        });
+
+        return $user
+            ? $this->responseJsonSuccess(new UserResource($user), 'User updated successfully.')
+            : $this->responseJsonFailed('Failed to update user.');
     }
+
 
 
     /**
@@ -110,10 +102,56 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $this->userRepo->destroy($id);
+        $user = $this->userRepo->find($id);
+        if (!$user) {
+            return $this->responseJsonFailed('User not found.', 404);
+        }
 
-        // TODO  handle image upload
+        DB::transaction(function () use ($user, $id) {
+            $this->removeOldImage($user);
+            $this->userRepo->destroy($id);    
+        });
+
         return $this->responseJsonSuccess([], 'User deleted successfully');
+    }
+
+    // custom methods
+    private function prepareUserData($request)
+    {
+        $data = $request->except(['permission_ids', '_method', 'image', 'type']);
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        return $data;
+    }
+
+    private function handleImageUpload($request, $user)
+    {
+        if ($request->hasFile('image')) {       
+            $this->removeOldImage($user);
+
+            $path = $request->file('image')->store('images', 'public');
+            $user->images()->create(['path' => $path]);
+        }
+    }
+
+    private function removeOldImage($user)
+    {
+        $oldImage = $user->images()->first();
+        if ($oldImage) {
+            Storage::disk('public')->delete($oldImage->path); // remove old image from storage
+            $oldImage->delete(); // remove old image from database
+        }
+    }
+
+    private function assignPermissions($request, $user)
+    {
+        if ($request->filled('permission_ids')) {
+            $permissions = Permission::whereIn('id', $request->permission_ids)->pluck('name')->toArray();
+            $user->syncPermissions($permissions); // Automatically handles permission updates
+        }
     }
 
 }

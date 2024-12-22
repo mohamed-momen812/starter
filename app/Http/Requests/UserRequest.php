@@ -28,24 +28,25 @@ class UserRequest extends FormRequest
 
     public function onCreate(){
         return [
-            'first_name'     => 'required|string',
-            'last_name'      => 'required|string',
-            'email'          => 'required|string|email|unique:users',
-            'password'       => 'required|string',
-            'type'           => 'in:admin,user',
-            'permission_id'  => 'array|nullable',
+
+            'first_name'      => 'required|string',
+            'last_name'       => 'required|string',
+            'email'           => 'required|string|email|unique:users',
+            'password'        => 'required|string',
+            'image'           => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'permission_id'   => 'nullable|array',
             'permission_id.*' => 'integer|exists:permissions,id'
         ];
     }
 
     public function onUpdate(){
         return [
-            'first_name'     => 'required|string',
-            'last_name'      => 'required|string',
-            'email'          => 'required|string|email',
-            'password'       => 'required|string',
-            'type'           => 'in:admin,user',
-            'permission_id'  => 'array|nullable',
+            'first_name'      => 'required|string',
+            'last_name'       => 'required|string',
+            'email'           => 'required|string|email',
+            'password'        => 'required|string',
+            'image'           => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'permission_id'   => 'array|nullable',
             'permission_id.*' => 'integer|exists:permissions,id'
         ];
     }
@@ -53,15 +54,20 @@ class UserRequest extends FormRequest
     public function messages()
     {
         return [
-            'first_name.required'   => 'first_name is required',
-            'first_name.string'     => 'first name must be string',
-            'last_name.required'    => 'first_name is required',
-            'last_name.string'      => 'first name must be string',
-            'email.required'        => 'email is required',
-            'email.string'          => 'email must be string',
-            'email.email'           => "email isn't correct",
-            'password.required'     => 'password field is required',
-            'type.string'           => 'type must be string'
-        ];
+            'first_name.required'     => 'first_name is required',
+            'first_name.string'       => 'first name must be string',
+            'last_name.required'      => 'first_name is required',
+            'last_name.string'        => 'first name must be string',
+            'email.required'          => 'email is required',
+            'email.string'            => 'email must be string',
+            'email.email'             => "email isn't correct",
+            'password.required'       => 'password field is required',
+            'password.string'         => 'password must be string',
+            'image.image'             => 'image must be image',
+            'image.mimes'             => 'image must be jpeg,png,jpg,gif,svg',
+            'image.max'               => 'image size must be less than 2mb',
+            'permission_id.array'     => 'permission_id must be array',
+            'permission_id.*.integer' => 'permission_id must be integer',
+            'permission_id.*.exists'  => 'permission_id does not exist',];
     }
 }

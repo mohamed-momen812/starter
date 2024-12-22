@@ -7,7 +7,7 @@ use App\Http\Requests\RoleRequest;
 use App\Http\Resources\RoleResource;
 use App\Interfaces\RoleRepositoryInterface;
 use App\Traits\ApiTrait;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -30,6 +30,10 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::with('permissions')->get();
+        if($roles->isEmpty()){
+            return $this->responseJsonFailed('No roles found', 404);
+        }
+
         return $this->responseJsonSuccess( RoleResource::collection($roles) );
     }
 
@@ -42,14 +46,20 @@ class RoleController extends Controller
      */
     public function store(RoleRequest $request)
     {
-        $role = $this->roleRepo->create($request->validated());
+        $role = DB::transaction(function () use ($request) {
+            $role = $this->roleRepo->create($request->validated());
 
-        if($request->permission_ids != null){
-            $permissions = Permission::whereIn('id', $request->permission_ids)->get();
-            $role->syncPermissions($permissions);
-        }
-
-        return $this->responseJsonSuccess( new RoleResource($role), 'Role successfuly created', 201 );
+            if ($request->filled('permission_ids')) {
+                $permissions = Permission::whereIn('id', $request->permission_ids)->pluck('name')->toArray();
+                $role->syncPermissions($permissions); 
+            }
+            
+            return $role;
+        });
+        
+        return $role
+        ? $this->responseJsonSuccess( new RoleResource($role), 'Role successfuly created', 201 )
+        : $this->responseJsonFailed('Failed to create role', 500);
     }
 
     /**
@@ -72,16 +82,27 @@ class RoleController extends Controller
      */
     public function update(RoleRequest $request, $id)
     {
-        $role = $this->roleRepo->update($request->except('permission_ids','_method') , $id);
-
-        if($request->permission_ids != null){
-            $permissions = Permission::whereIn('id', $request->permission_ids)->get();
-            foreach ($permissions as $permission) {
-                $role->givePermissionTo($permission);
-            } // can't use syncPermissions here because it will remove all permissions first
+        $role = $this->roleRepo->find($id);
+        if (!$role) {
+            return $this->responseJsonFailed('Role not found', 404);
         }
 
-        return $this->responseJsonSuccess( new RoleResource($role), 'Role successfuly updated' );
+        $role = DB::transaction(function () use ($request, $role, $id) {
+            $role = $this->roleRepo->update($request->except('permission_ids','_method') , $id);
+
+            if($request->permission_ids != null){
+                $permissions = Permission::whereIn('id', $request->permission_ids)->get();
+                foreach ($permissions as $permission) {
+                    $role->givePermissionTo($permission);
+                } // can't use syncPermissions here because it will remove all permissions first
+            }
+
+            return $role;
+        });
+
+        return $role
+        ? $this->responseJsonSuccess( new RoleResource($role), 'Role successfuly created', 201 )
+        : $this->responseJsonFailed('Failed to create role', 500);
     }
 
     /**
@@ -92,6 +113,10 @@ class RoleController extends Controller
      */
     public function destroy($id)
     {
+        if (!$this->roleRepo->find($id)) {
+            return $this->responseJsonFailed('Role not found', 404);
+        }
+
         $role = $this->roleRepo->destroy($id);
 
         return $this->responseJson();

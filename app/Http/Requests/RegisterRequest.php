@@ -29,6 +29,7 @@ class RegisterRequest extends FormRequest
                 'last_name' => 'required|string|between:2,100',
                 'email' => 'required|string|email|max:100|unique:users',
                 'password' => 'required|string|min:6|confirmed',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
     }
 
@@ -45,7 +46,10 @@ class RegisterRequest extends FormRequest
             'email.unique' => 'Email already exists',
             'password.required' => 'Password is required',
             'password.min' => 'Password must be at least 6 characters',
-            'password.confirmed' => 'Password confirmation does not match'
+            'password.confirmed' => 'Password confirmation does not match',
+            'image.image' => 'Image must be an image',
+            'image.mimes' => 'Image must be jpeg, png, jpg, gif, svg',
+            'image.max' => 'Image size must be less than 2mb',
         ];
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 // Dashboard Routes (Admin-Facing)
 Route::group(['middleware' => ['api', 'auth:sanctum', 'can:access_dashboard'], 'prefix' => 'admin'], function () {
+
     // === User Management ===
     Route::apiResource('users', UserController::class);
 
@@ -16,11 +17,12 @@ Route::group(['middleware' => ['api', 'auth:sanctum', 'can:access_dashboard'], '
 
     // === Permission Routes ===
     Route::prefix('permissions')->group(function () {
-        Route::apiResource('/', PermissionController::class)->parameters(['' => 'permission']); // must use parameter
+        Route::apiResource('/', PermissionController::class)->parameters(['' => 'permission']); // must use parameter cause i use just
         Route::get('/user/{id}', [PermissionController::class, 'getPermissions']);
         Route::post('/user/{id}', [PermissionController::class, 'updatePermissions']);
     });
 
     // === Product Management ===
     Route::apiResource('products', ProductController::class);
+    
 });

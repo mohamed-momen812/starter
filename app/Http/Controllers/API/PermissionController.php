@@ -13,7 +13,7 @@ use App\Models\User;
 use App\Traits\ApiTrait;
 use App\Traits\PermissionsTrait;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -38,7 +38,9 @@ class PermissionController extends Controller
     public function index()
     {
         $permissions = $this->permissionRepo->all();
-        return $this->responseJsonSuccess( PermissionResource::collection($permissions) );
+
+        if (!empty($permissions)) return $this->responseJsonSuccess(PermissionResource::collection($permissions));
+        return $this->responseJsonFailed("No permissions here", 404);
     }
 
 
@@ -50,12 +52,16 @@ class PermissionController extends Controller
      */
     public function store(PermissionRequest $request)
     {
-        $permission = $this->permissionRepo->create($request->validated());
+        $permission = DB::transaction(function () use ($request) {
+            $permission = $this->permissionRepo->create($request->validated());
 
-        if ($request->role_ids != null){
-            $roles = Role::whereIn('id',$request->role_ids)->get();
-            $permission->syncRoles($roles);
-        }
+            if ($request->role_ids != null){
+                $roles = Role::whereIn('id',$request->role_ids)->get();
+                $permission->syncRoles($roles);
+            }
+
+            return $permission;
+        });
 
         return $this->responseJsonSuccess( new PermissionResource($permission) );
     }
@@ -68,6 +74,7 @@ class PermissionController extends Controller
      */
     public function show(Permission $permission)
     {
+        if (!$permission) return $this->responseJsonFailed("Permission not found", 404);
         return $this->responseJsonSuccess( new PermissionResource($permission) );
     }
 
@@ -81,14 +88,18 @@ class PermissionController extends Controller
      */
     public function update(PermissionRequest $request, $id)
     {
-        $permission = $this->permissionRepo->update($request->except('_method','role_ids') , $id);
+        $permission = DB::transaction(function () use ($request, $id) {
+            $permission = $this->permissionRepo->update($request->except('_method','role_ids') , $id);
 
-        if ($request->role_ids != null){
-            foreach ($request->role_ids as $role_id) {
-                 $roles = Role::whereIn('id',$request->role_ids)->get();
-                $permission->assignRole($roles);
-            }
-        } // can't use syncRoles here because it will remove all roles first
+            if ($request->role_ids != null){
+                foreach ($request->role_ids as $role_id) {
+                    $roles = Role::whereIn('id',$request->role_ids)->get();
+                    $permission->assignRole($roles);
+                }
+            } // can't use syncRoles here because it will remove all roles first
+
+            return $permission;
+        });
 
         return $this->responseJsonSuccess( new PermissionResource($permission) );
     }
@@ -101,6 +112,8 @@ class PermissionController extends Controller
      */
     public function destroy($id)
     {
+        if (!$this->permissionRepo->find($id)) return $this->responseJsonFailed("Permission not found", 404);
+
         $permission = $this->permissionRepo->destroy($id);
         return $this->responseJsonSuccess();
     } // TODO this method doesn work
@@ -109,7 +122,7 @@ class PermissionController extends Controller
     {
         $user = User::where('id', $id)->get(); // must be get to retrive user as collection not object
 
-        if($user == null) return $this->responseJsonFailed("User not found");
+        if($user == null) return $this->responseJsonFailed("User not found", 404);
 
         return $this->responseJsonSuccess( UserPermissionResource::collection($user));
     }
@@ -118,7 +131,7 @@ class PermissionController extends Controller
     {
         $user = $this->userRepo->find($id);
 
-        if($user == null) return $this->responseJsonFailed("User not found");
+        if($user == null) return $this->responseJsonFailed("User not found", 404);
 
         if ($request->filled('permission_ids')) {
 

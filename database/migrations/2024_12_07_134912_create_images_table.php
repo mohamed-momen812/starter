@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('images', function (Blueprint $table) {
             $table->id();
-            $table->morphs('imagable');
+            $table->string('path'); // Path to the image file
+            $table->morphs('imageable'); // Polymorphic relation fields (imageable_id and imageable_type)
             $table->timestamps();
         });
     }

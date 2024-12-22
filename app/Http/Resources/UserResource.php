@@ -23,7 +23,7 @@ class  UserResource extends JsonResource
             "first_name" => $this->first_name,
             "last_name"  => $this->last_name,
             "email"      => $this->email,
-            "image"      => $this->image ? url($this->image) : null,
+            "image"      => $this->images()->first() ? asset('storage/' . $this->images()->first()->path) : null,
             "created_at" => $this->created_at->format('d-m-y'),
             "role" => RoleResource::collection($this->rolesWithPermissions), // rolesWithPermissions is a custom relation in user model
             "added_permissions" => $this->mapPermissions($this->permissions),
