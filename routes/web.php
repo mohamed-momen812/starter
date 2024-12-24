@@ -1,14 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PaypalController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('welcome'); 
 });
 
-Auth::routes(['verify' => true]);
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::post('paypal', [PaypalController::class, 'paypal'])->name('paypal');
+Route::get('success', [PaypalController::class, 'success'])->name('success');
+Route::get('cancel', [PaypalController::class, 'cancel'])->name('cancel');
