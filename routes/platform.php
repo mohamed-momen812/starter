@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 // Platform Routes (User-Facing)
@@ -19,5 +20,10 @@ Route::group(['middleware' => ['api']], function () {
             Route::post('/change-password', [AuthController::class, 'changePassword']);
         });
     });
+
+    // === Payment Routes === must be named
+    Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
+    Route::get('success', [PaymentController::class, 'success'])->name('success');
+    Route::get('error', [PaymentController::class, 'error'])->name('error');
     
 });
