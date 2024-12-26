@@ -9,9 +9,9 @@
 <body>
     <h2>Product: Laptop</h2>
     <h3>Price: $5</h3>
-    <form action="{{ route('paypal') }}" method="post">
+    <form action="{{ route('payment') }}" method="post">
         @csrf
-        <input type="hidden" name="price" value="2">
+        <input type="hidden" name="amount" value="53">
         <input type="hidden" name="product_name" value="Laptop">
         <input type="hidden" name="quantity" value="1">
         <button type="submit">Pay with payPal</button>
