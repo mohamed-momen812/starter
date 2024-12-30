@@ -20,6 +20,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            $table->string('social_id')->nullable(); // e.g., 'google', 'facebook'
+            $table->string('social_type')->nullable(); // Social login user ID
             $table->timestamps();
         });
     }

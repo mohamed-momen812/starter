@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
@@ -32,11 +32,11 @@ class AuthController extends Controller
 
             $this->handleImageUpload($request, $user);
 
-            event(new Registered($user));
+            event(new Registered($user)); // event to make listener send verification email
 
             return $user;
         });
-        
+
         return $user
         ? $this->responseJsonSuccess(['user' => new UserResource($user)], 'User successfully registered', 201)
         : $this->responseJsonFailed('Failed to register user.');
@@ -101,8 +101,8 @@ class AuthController extends Controller
             $path = $request->file('image')->store('images', 'public');
             $user->images()->create(['path' => $path]);
         }
-    } 
-    
+    }
+
     private function prepareUserData($request)
     {
         $data = $request->except(['image', 'password']);

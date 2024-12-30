@@ -46,7 +46,7 @@ class UserController extends Controller
 
             return $user;
         });
-        
+
         return ($user != null ) ?  $this->responseJsonSuccess(new UserResource($user), 'User Created successfuly') : $this->responseJsonFailed('Failed to create user.', 404); ;
     }
 
@@ -109,7 +109,7 @@ class UserController extends Controller
 
         DB::transaction(function () use ($user, $id) {
             $this->removeOldImage($user);
-            $this->userRepo->destroy($id);    
+            $this->userRepo->destroy($id);
         });
 
         return $this->responseJsonSuccess([], 'User deleted successfully');
@@ -129,7 +129,7 @@ class UserController extends Controller
 
     private function handleImageUpload($request, $user)
     {
-        if ($request->hasFile('image')) {       
+        if ($request->hasFile('image')) {
             $this->removeOldImage($user);
 
             $path = $request->file('image')->store('images', 'public');

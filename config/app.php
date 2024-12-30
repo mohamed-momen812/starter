@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
-use Srmklive\PayPal\Facades\PayPal;
+
 
 return [
 
@@ -162,6 +162,7 @@ return [
          */
 
         Spatie\Permission\PermissionServiceProvider::class,
+        Laravel\Socialite\SocialiteServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -187,7 +188,7 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        // 'Example' => App\Facades\Example::class,
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
     ])->toArray(),
 
 ];

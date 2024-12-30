@@ -16,5 +16,7 @@
         <input type="hidden" name="quantity" value="1">
         <button type="submit">Pay with payPal</button>
     </form>
+
+    <a href="{{ route('GoogleRedirect') }}"><strong>Google Login</strong></a>
 </body>
 </html>
