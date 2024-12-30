@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Events\MyEvent;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -39,3 +40,9 @@ Route::post('/email/verification-notification', function (Request $request) {
 
     return 'Verification email sent successfully';
 })->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
+
+// just for testing broadcasting
+Route::get('/broadcast', function () {
+    event(new MyEvent('Message from backend'));
+    return 'Event fired!';
+});
