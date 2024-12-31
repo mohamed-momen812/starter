@@ -58,6 +58,7 @@ class AuthController extends Controller
 
     public function logout() {
         $user = auth()->user();
+        // $user->tokens()->delete(); // delete all tokens of the user
         $user->currentAccessToken()->delete();
 
         return $this->responseJsonSuccess([], 'User successfully signed out');

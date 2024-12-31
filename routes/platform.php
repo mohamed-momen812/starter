@@ -31,5 +31,4 @@ Route::group(['middleware' => ['api']], function () {
     Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
     Route::get('success', [PaymentController::class, 'success'])->name('success');
     Route::get('error', [PaymentController::class, 'error'])->name('error');
-
 });
