@@ -59,7 +59,7 @@ class UserController extends Controller
     public function show($id)
     {
         $user = $this->userRepo->find($id);
-        return $user ? $this->responseJsonSuccess(new UserResource($user)) : $this->responseJsonFailed( "user not found", 404); ;
+        return $user ? $this->responseJsonSuccess(new UserResource($user)) : $this->responseJsonFailed( "user not found", 404);
     }
 
     /**
