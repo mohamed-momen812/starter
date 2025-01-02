@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Events\MyEvent;
+use App\Http\Controllers\Api\ChatController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -41,7 +42,6 @@ Route::post('/email/verification-notification', function (Request $request) {
 })->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
 
 // just for testing broadcasting
-Route::get('/broadcast', function () {
-    event(new MyEvent('Message from backend'));
-    return 'Event fired!';
-});
+Route::get('/', 'App\Http\Controllers\Api\PusherController@index');
+Route::post('/broadcast', 'App\Http\Controllers\Api\PusherController@broadcast');
+Route::post('/receive', 'App\Http\Controllers\Api\PusherController@receive');
