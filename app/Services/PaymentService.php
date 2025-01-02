@@ -21,7 +21,7 @@ class PaymentService
         $this->gateway->setTestMode(true); // Set it to 'false' in production
     }
 
-    public function initiatePayment($amount, $returnUrl, $cancelUrl)
+    public function ainitiatePayment($amount, $returnUrl, $cancelUrl)
     {
         try {
             $response = $this->gateway->purchase([

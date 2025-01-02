@@ -8,17 +8,16 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 
-// just for testing payment and socialite
-
 Route::get('/', function () {
     return view('welcome');
 })->name('login');
 
+// just for testing payment
 Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
 Route::get('success', [PaymentController::class, 'success'])->name('success');
 Route::get('error', [PaymentController::class, 'error'])->name('error');
 
-
+// just for testing socialite
 Route::get('api/auth/google/redirect', [SocialiteController::class, 'redirectToProvider'])->name('GoogleRedirect'); // must be named
 Route::get('api/auth/google/callback', [SocialiteController::class, 'handleProviderCallback']); // this route will not work in laragon because redirect url is 127.0.0.1:8000 not starter.test
 

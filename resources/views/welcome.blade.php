@@ -1,4 +1,4 @@
-{{-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,7 +19,7 @@
 
     <a href="{{ route('GoogleRedirect') }}"><strong>Google Login</strong></a>
 </body>
-</html> --}}
+</html>
 
 
 <!DOCTYPE html>

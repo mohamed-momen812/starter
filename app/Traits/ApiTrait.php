@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+
 trait ApiTrait
 {
     public function responseJsonSuccess($data=null, $message='Successfully Done', $status=200)
@@ -21,6 +23,26 @@ trait ApiTrait
             "status" => $status,
             "message" => $message,
         ], $status);
+    }
+
+    public function dataPaginate($data)
+    {
+        $page = request()->page ?? 1;
+
+        $perPage = request()->perPage ?? 10;
+        if($perPage < 0){
+            return ['data' => $data];
+        }
+
+        $paginatedData = new LengthAwarePaginator(
+            $data->forPage($page, $perPage)->values(),
+            $data->count(),
+            $perPage,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        return $paginatedData;
     }
 
 }

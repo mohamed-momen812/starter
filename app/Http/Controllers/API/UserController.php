@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Interfaces\UserRepositoryInterface;
+use App\Models\SubscriptionPlan;
+use App\Models\User;
 use App\Traits\ApiTrait;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
@@ -26,9 +28,20 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = $this->userRepo->all();
+        // $users = $this->userRepo->all();
+        $per_page = request()->per_page ?? 5;
+        $users = User::Paginate($per_page);
 
-        if (!empty($users)) return $this->responseJsonSuccess(UserResource::collection($users));
+        if (request()->has('name')) {
+            $name = strtolower(request()->input('name'));
+
+            $users = $users->filter(function ($user) use ($name) {
+                $nameMatch = strpos(strtolower($user->first_name), $name) !== false;
+                return $nameMatch;
+            });
+        }
+
+        if (!empty($users)) return $this->dataPaginate( UserResource::collection($users));
         return $this->responseJsonFailed("No users here", 404);
     }
 
@@ -122,6 +135,8 @@ class UserController extends Controller
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
+        }else{
+           $data['password'] = Hash::make('password');
         }
 
         return $data;

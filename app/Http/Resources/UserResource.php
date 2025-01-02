@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\SubscriptionPlan;
 use App\Traits\PermissionsTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,10 +20,13 @@ class  UserResource extends JsonResource
     {
         return [
             "id"         => $this->id,
-            "type"       => $this->type,
             "first_name" => $this->first_name,
             "last_name"  => $this->last_name,
             "email"      => $this->email,
+            "bio"        => $this->bio,
+            "plan"       => optional(SubscriptionPlan::find(optional($this->subscriptions()->first())->subscription_plan_id))->name ?? null,
+            "plan_start_date"  => $this->subscriptions()->first()->start_date ?? null,
+            "plan_end_date"   => $this->subscriptions()->first()->end_date ?? null,
             "image"      => $this->images()->first() ? asset('storage/' . $this->images()->first()->path) : null,
             "created_at" => $this->created_at->format('d-m-y'),
             "role" => RoleResource::collection($this->rolesWithPermissions), // rolesWithPermissions is a custom relation in user model
