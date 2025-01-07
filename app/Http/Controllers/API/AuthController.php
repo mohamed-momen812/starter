@@ -6,10 +6,10 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\ResetPasswordMail;
 use App\Repositories\UserRepository;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
-use App\Models\User;
 use App\Traits\ApiTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -35,7 +35,7 @@ class AuthController extends Controller
 
             $this->handleImageUpload($request, $user);
 
-            // event(new Registered($user)); // event to make listener send verification email
+            event(new Registered($user)); // event to make listener send verification email
 
             return $user;
         });
@@ -51,11 +51,11 @@ class AuthController extends Controller
             return $this->responseJsonFailed( 'Credintials failed' ,  401 );
         } // use guard web cause method attempt doesn't work with guard api
 
-        $token = auth()->user()->createToken('MyApp')->plainTextToken;
+        $token = auth("web")->user()->createToken('MyApp')->plainTextToken; 
 
         return $this->responseJsonSuccess([
             'access_token' => $token,
-            'user' => new UserResource(auth()->user()),
+            'user' => new UserResource(auth('web')->user()),
         ], " User logged in successfully");
     }
 
