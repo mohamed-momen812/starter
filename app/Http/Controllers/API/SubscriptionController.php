@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\SubscriptionPlan;
-use App\Models\UserSubscription;
+use App\Http\Resources\PlanResource;
+use App\Models\Plan;
+use App\Models\User;
 use App\Services\PaymentService;
 use App\Traits\ApiTrait;
-use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class SubscriptionController extends Controller
@@ -25,9 +24,9 @@ class SubscriptionController extends Controller
 
     public function plans()
     {
-        $plans = SubscriptionPlan::all();
+        $plans = Plan::all();
 
-        return $this->responseJsonSuccess($plans, 'Subscription plans');
+        return $this->dataPaginate(PlanResource::collection($plans));
     }
 
     public function subscribe(Request $request)
@@ -37,7 +36,7 @@ class SubscriptionController extends Controller
 
         $planId = $request->plan_id;
 
-        $plan = SubscriptionPlan::find($planId);
+        $plan = Plan::find($planId);
 
         if(!$plan) {
             return $this->responseJsonFailed('No plane found with this id', 404);
@@ -51,25 +50,28 @@ class SubscriptionController extends Controller
 
         DB::beginTransaction();
         try {
-            $startDate = Carbon::now();
-            $endDate = Carbon::now()->addDays($plan->duration_days);
 
-            UserSubscription::create([
-                'user_id' => $userId,
-                'subscription_plan_id' => $planId,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'status' => 'active',
+            $user = User::find($userId);
+            $subscription = $user->subscriptions()->create([
+                'plan_id' => $plan->id,
+                'starts_at' => now(),
+                'ends_at' => now()->addDays($plan->duration),
             ]);
+
+            foreach ($plan->features as $feature) {
+                $subscription->featureUsages()->create([
+                    'feature_id' => $feature->id,
+                    'used' => 0,
+                ]);
+            }
 
             DB::commit();
 
             return $this->responseJsonSuccess([
                     'user_id' => $userId,
-                    'subscription_plan_id' => $planId,
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'status' => 'active',
+                    'plan_id' => $planId,
+                    'start_date' => now(),
+                    'end_date' =>  now()->addDays($plan->duration),
             ], 'Subscription successful');
 
         }catch (\Exception $e) {
@@ -77,4 +79,16 @@ class SubscriptionController extends Controller
             return $this->responseJsonFailed($e->getMessage(), 400);
         }
     }
+
+    public function canUseFeature(User $user, $featureCode)
+    {
+        $subscription = $user->activeSubscription();
+        if (!$subscription) return $this->responseJsonFailed('No active subscription found', 400);
+
+        $feature = $subscription->plan->features->where('code', $featureCode)->first();
+        $usage = $subscription->featureUsages->where('feature_id', $feature->id)->first();
+
+        return $usage && $usage->used < $feature->value;
+    }
+
 }

@@ -6,13 +6,12 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, Billable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'image',
         'password',
+        'remember_token',
         'social_id',
         'social_type',
         'bio', // Add bio to fillable attributes
@@ -84,8 +84,14 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function subscriptions()
     {
-        return $this->hasMany(UserSubscription::class);
+        return $this->hasMany(Subscription::class);
     }
+
+    public function activeSubscription()
+    {
+        return $this->subscriptions()->where('ends_at', '>', now())->latest()->first();
+    }
+
     public function messages()
     {
         return $this->hasMany(Message::class, 'sender_id');

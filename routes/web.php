@@ -1,9 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\SocialiteController;
-use App\Http\Controllers\Api\PaymentController;
-use App\Events\MyEvent;
-use App\Http\Controllers\Api\ChatController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -11,17 +8,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 Route::get('/', function () {
     return view('welcome');
-})->name('login');
-
-// just for testing payment
-Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
-Route::get('success', [PaymentController::class, 'success'])->name('success');
-Route::get('error', [PaymentController::class, 'error'])->name('error');
-
-// just for testing socialite
-Route::get('api/auth/google/redirect', [SocialiteController::class, 'redirectToProvider'])->name('GoogleRedirect'); // must be named
-Route::get('api/auth/google/callback', [SocialiteController::class, 'handleProviderCallback']); // this route will not work in laragon because redirect url is 127.0.0.1:8000 not starter.test
-
+});
 
 // This route is hit when user try to make requests in routes has verified middleware and his email does not verified
 Route::get('/email/verify', function () {
@@ -41,7 +28,17 @@ Route::post('/email/verification-notification', function (Request $request) {
     return 'Verification email sent successfully';
 })->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
 
+// just for testing socialite thier are two routes for google login in platform
+Route::get('api/auth/google/redirect', [SocialiteController::class, 'redirectToProvider'])->name('GoogleRedirect'); // must be named
+Route::get('api/auth/google/callback', [SocialiteController::class, 'handleProviderCallback']); // this route will not work in laragon because redirect url is 127.0.0.1:8000 not starter.test
+
+
+// // just for testing payment
+// Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
+// Route::get('success', [PaymentController::class, 'success'])->name('success');
+// Route::get('error', [PaymentController::class, 'error'])->name('error');
+
 // just for testing broadcasting
-Route::get('/', 'App\Http\Controllers\Api\PusherController@index');
-Route::post('/broadcast', 'App\Http\Controllers\Api\PusherController@broadcast');
-Route::post('/receive', 'App\Http\Controllers\Api\PusherController@receive');
+// Route::get('/', 'App\Http\Controllers\Api\PusherController@index');
+// Route::post('/broadcast', 'App\Http\Controllers\Api\PusherController@broadcast');
+// Route::post('/receive', 'App\Http\Controllers\Api\PusherController@receive');

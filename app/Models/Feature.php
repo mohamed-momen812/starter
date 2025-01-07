@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SubscriptionPlan extends Model
+class Feature extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'duration_days'];
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
 }

@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\ResetPasswordMail;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
+use App\Models\User;
 use App\Traits\ApiTrait;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -32,7 +35,7 @@ class AuthController extends Controller
 
             $this->handleImageUpload($request, $user);
 
-            event(new Registered($user)); // event to make listener send verification email
+            // event(new Registered($user)); // event to make listener send verification email
 
             return $user;
         });
@@ -58,8 +61,8 @@ class AuthController extends Controller
 
     public function logout() {
         $user = auth()->user();
-        // $user->tokens()->delete(); // delete all tokens of the user
         $user->currentAccessToken()->delete();
+        // $user->tokens()->delete(); // delete all tokens of the user
 
         return $this->responseJsonSuccess([], 'User successfully signed out');
     }
@@ -94,6 +97,48 @@ class AuthController extends Controller
         $user->save();
 
         return $this->responseJsonSuccess(['user' => new UserResource($user)], 'Password changed successfully', 200);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = $this->userRepo->findByEmail($request->email);
+
+        if (!$user) {
+            return $this->responseJsonFailed('User not found', 404);
+        }
+
+        $token = Str::random(60);
+
+        $user->update(['remember_token' => $token]);
+
+        Mail::to($user->email)->send(new ResetPasswordMail($token));
+
+        return $this->responseJsonSuccess([], 'Password reset email sent successfully');
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'new_password' => 'required|confirmed',
+        ]);
+
+        $user = $this->userRepo->findbyToken($request->token);
+
+        if (!$user) {
+            return $this->responseJsonFailed('Invalid token', 401);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password),
+            'remember_token' => null,
+        ]);
+        
+        return $this->responseJsonSuccess([], 'Password reset successfully');
     }
 
     // custom functions

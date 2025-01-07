@@ -28,8 +28,8 @@ trait ApiTrait
     public function dataPaginate($data)
     {
         $page = request()->page ?? 1;
-
-        $perPage = request()->perPage ?? 10;
+        $perPage = request()->per_page ?? 10;
+        
         if($perPage < 0){
             return ['data' => $data];
         }
@@ -42,7 +42,7 @@ trait ApiTrait
             ['path' => LengthAwarePaginator::resolveCurrentPath()]
         );
 
-        return $paginatedData;
+        return response()->json($paginatedData);
     }
 
 }

@@ -18,13 +18,12 @@ Route::group(['middleware' => ['api', 'auth:sanctum', 'can:access_dashboard'], '
 
     // === Permission Routes ===
     Route::prefix('permissions')->group(function () {
-        Route::apiResource('/', PermissionController::class)->parameters(['' => 'permission']); // must use parameter cause i use just
+        Route::apiResource('/', PermissionController::class)->parameters(['' => 'permission']); // must use parameter cause i use just /
         Route::get('/user/{id}', [PermissionController::class, 'getPermissions']);
         Route::post('/user/{id}', [PermissionController::class, 'updatePermissions']);
     });
 
     // === Product Management ===
-    Route::apiResource('products', ProductController::class);
-
-    Route::get('/plans', [SubscriptionController::class, 'plans']);
+    // Route::apiResource('products', ProductController::class);
+    // Route::get('/plans', [SubscriptionController::class, 'plans']);
 });

@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Traits\PermissionsTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class  PlanResource extends JsonResource
@@ -18,10 +17,9 @@ class  PlanResource extends JsonResource
         return [
             "id"         => $this->id,
             "name"       => $this->name,
+            "description"=> $this->description,
             "price"      => $this->price,
             "duration_days" => $this->duration_days,
-            "created_at" => $this->created_at->format('d-m-y'),
-            "updated_at" => $this->updated_at->format('d-m-y'),
         ];
     }
 }

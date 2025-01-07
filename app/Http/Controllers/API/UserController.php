@@ -6,10 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Interfaces\UserRepositoryInterface;
-use App\Models\SubscriptionPlan;
-use App\Models\User;
 use App\Traits\ApiTrait;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -28,9 +25,7 @@ class UserController extends Controller
 
     public function index()
     {
-        // $users = $this->userRepo->all();
-        $per_page = request()->per_page ?? 5;
-        $users = User::Paginate($per_page);
+        $users = $this->userRepo->all();
 
         if (request()->has('name')) {
             $name = strtolower(request()->input('name'));
@@ -55,7 +50,7 @@ class UserController extends Controller
             $this->handleImageUpload($request, $user);
             $this->assignPermissions($request, $user);
 
-            event(new Registered($user));
+            // event(new Registered($user));
 
             return $user;
         });

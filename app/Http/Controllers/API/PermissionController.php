@@ -39,7 +39,16 @@ class PermissionController extends Controller
     {
         $permissions = $this->permissionRepo->all();
 
-        if (!empty($permissions)) return $this->responseJsonSuccess(PermissionResource::collection($permissions));
+        if (request()->has('name')) {
+            $name = strtolower(request()->input('name'));
+
+            $permissions = $permissions->filter(function ($permission) use ($name) {
+                $nameMatch = strpos(strtolower($permission->first_name), $name) !== false;
+                return $nameMatch;
+            });
+        }
+
+        if (!empty($permissions)) return $this->dataPaginate(PermissionResource::collection($permissions));
         return $this->responseJsonFailed("No permissions here", 404);
     }
 
@@ -124,7 +133,7 @@ class PermissionController extends Controller
 
         if($user == null) return $this->responseJsonFailed("User not found", 404);
 
-        return $this->responseJsonSuccess( UserPermissionResource::collection($user));
+        return $this->dataPaginate( UserPermissionResource::collection($user));
     }
 
     public function updatePermissions(Request $request, $id)

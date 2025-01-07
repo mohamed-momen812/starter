@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subscription_plans', function (Blueprint $table) {
+        Schema::create('features', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('plan_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->text('description')->nullable();
-            $table->decimal('price', 8, 2)->default(0); // Price for the subscription
-            $table->integer('duration_days'); // Duration in days
+            $table->string('code')->unique(); // E.g., 'max_users'
+            $table->string('value')->nullable(); // E.g., 10 or 'unlimited'
             $table->timestamps();
         });
+        
     }
 
     /**
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subscription_plans');
+        Schema::dropIfExists('user_subscriptions');
     }
 };

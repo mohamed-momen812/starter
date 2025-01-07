@@ -42,7 +42,7 @@ class SocialiteController extends Controller
             return $this->responseJsonSuccess([
                 'token' => $token,
                 'user' => $newUser,
-            ], 'User login success', 201);
+            ], 'New user login success', 201);
         }
     }
 

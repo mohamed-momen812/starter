@@ -34,7 +34,16 @@ class RoleController extends Controller
             return $this->responseJsonFailed('No roles found', 404);
         }
 
-        return $this->responseJsonSuccess( RoleResource::collection($roles) );
+        if (request()->has('name')) {
+            $name = strtolower(request()->input('name'));
+
+            $roles = $roles->filter(function ($role) use ($name) {
+                $nameMatch = strpos(strtolower($role->first_name), $name) !== false;
+                return $nameMatch;
+            });
+        }
+
+        return $this->dataPaginate( RoleResource::collection($roles) );
     }
 
 
