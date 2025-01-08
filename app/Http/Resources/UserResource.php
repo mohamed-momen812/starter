@@ -2,8 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Plan;
-use App\Models\SubscriptionPlan;
 use App\Traits\PermissionsTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,7 +9,7 @@ class  UserResource extends JsonResource
 {
     use PermissionsTrait;
 
-    /**
+    /**0
      * Transform the resource into an array.
      *
      * @param  \Illuminate\Http\Request  $request
