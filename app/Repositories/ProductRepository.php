@@ -2,11 +2,11 @@
 
 namespace App\Repositories;
 
+use App\Interfaces\ProductRepositoryInterface;
 use App\Models\Product;
-use App\Models\ProductDetail;
 use App\Models\Review;
 
-class ProductRepository extends BaseRepository
+class ProductRepository extends BaseRepository implements ProductRepositoryInterface
 {
 
     public function __construct(Product $model)
@@ -23,10 +23,7 @@ class ProductRepository extends BaseRepository
             throw new \Exception("Product not found");
         }
 
-        ProductDetail::where('product_id', $id)->delete();
-
         Review::where('product_id', $id)->delete();
-
         $product->imagable->delete();
     
         return parent::destroy($id);

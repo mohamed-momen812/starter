@@ -12,7 +12,6 @@ Route::get('/', function () {
 });
 
 // TODO ask omar about this route
-
 // This route is hit when user try to make requests in routes has verified middleware and his email does not verified
 Route::get('/email/verify', function () {
     return 'This page is appear when user try to make requests in routes has verified middleware and his email does not verified';
@@ -34,10 +33,6 @@ Route::post('/email/verification-notification', function (Request $request) {
 // just for testing socialite thier are two routes for google login in platform
 Route::get('api/auth/google/redirect', [SocialiteController::class, 'redirectToProvider'])->name('GoogleRedirect'); // must be named
 Route::get('api/auth/google/callback', [SocialiteController::class, 'handleProviderCallback']); // this route will not work in laragon because redirect url is 127.0.0.1:8000 not starter.test
-
-
-Route::get('/countries', [CountryCityController::class, 'getCountries']);
-Route::get('/countries/{code}/cities', [CountryCityController::class, 'getCities']);
 
 // // just for testing payment
 // Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
