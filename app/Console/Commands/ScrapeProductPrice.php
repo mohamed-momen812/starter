@@ -2,47 +2,81 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use Goutte\Client;
-use App\Models\Price;
+use Illuminate\Console\Command;
 
 class ScrapeProductPrice extends Command
 {
-    protected $signature = 'scrape:price {url}';
-    protected $description = 'Scrape the price of a product from a URL';
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    protected $signature = 'scrape:product-price {product}';
+    protected $description = 'Scrape product price from specific websites';
 
     public function handle()
     {
-        $url = $this->argument('url');
-        
-        // Create a new Goutte client
+        $productName = $this->argument('product');
+        $this->info("Searching for product:  $productName");
+
+        $websites = [
+            // 'https://www.ebay.com',
+            // 'https://www.amazon.com',
+           'https://alkhunaizan.sa'
+        ];
+
+        foreach ($websites as $website) {
+            $this->info("Scraping $website...");
+
+            try {
+                $this->scrapeWebsite($website, $productName);
+            } catch (\Exception $e) {
+                $this->error("Error scraping $website: " . $e->getMessage());
+            }
+        }
+
+        return 'Scraping completed!';
+    }
+
+    private function scrapeWebsite($website, $productName)
+    {
         $client = new Client();
 
-        // Request the page
-        $crawler = $client->request('GET', $url);
+        // Adjust the search URL for each website
+        $searchUrl = $this->buildSearchUrl($website, $productName);
+        $this->info("Searching URL: $searchUrl");
 
-        // Extract the price (update this based on the HTML structure of the target website)
-        $priceNode = $crawler->filter(".a-price-whole"); // Example selector
+        $crawler = $client->request('GET', $searchUrl);
 
-        if ($priceNode->count() > 0) {
-            $price = $priceNode->text();
-            $convertedValue = str_replace(',', '.', $price);
+        // Update the selector based on the website's structure
+        $productDetails = $crawler->filter('.product-item-details')->each(function ($node) {
+            return [
+                'name' => $node->filter('.product-item-name')->text(),
+                'price' => $node->filter('.price-final_price')->text(),
+                'link' => $node->filter('a')->attr('href'),
+            ];
+        });
+
+        if (!empty($productDetails)) {
+            foreach ($productDetails as $product) {
+                $this->info("Product: " . $product['name']);
+                $this->info("Price: " . $product['price']);
+                $this->info("Link: " . $product['link']);
+            }
         } else {
-            $this->error('Price not found.');
-            return;
+            $this->info("No products found on $website.");
         }
-           
-        // Store the price in the database
-        Price::create([
-            'product_url' => $url,
-            'price' => (double)$convertedValue,
-        ]);
+    }
 
-        $this->info("Price for {$url} is {$convertedValue}");
+    private function buildSearchUrl($website, $productName)
+    {
+        // Customize search URLs based on the website's format
+        $query = urlencode($productName);
+
+        if (strpos($website, 'amazon') !== false) {
+            return "$website/s?k=$query"; // Amazon's search pattern
+        } elseif (strpos($website, 'ebay') !== false) {
+            return "$website/sch/i.html?_nkw=$query"; // eBay's search pattern
+        } elseif (strpos($website, 'alkhunaizan.sa') !== false) {
+            return "$website/catalogsearch/result/?q=$query"; // alkhunaizan's search pattern
+        } else {
+            return "$website/search?q=$query"; // Default search pattern
+        }
     }
 }
