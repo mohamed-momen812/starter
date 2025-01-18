@@ -7,14 +7,14 @@ use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Interfaces\UserRepositoryInterface;
 use App\Traits\ApiTrait;
+use App\Traits\HandelImageTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
-    use ApiTrait;
+    use ApiTrait, HandelImageTrait;
 
     protected $userRepo;
 
@@ -135,25 +135,6 @@ class UserController extends Controller
         }
 
         return $data;
-    }
-
-    private function handleImageUpload($request, $user)
-    {
-        if ($request->hasFile('image')) {
-            $this->removeOldImage($user);
-
-            $path = $request->file('image')->store('images', 'public');
-            $user->images()->create(['path' => $path]);
-        }
-    }
-
-    private function removeOldImage($user)
-    {
-        $oldImage = $user->images()->first();
-        if ($oldImage) {
-            Storage::disk('public')->delete($oldImage->path); // remove old image from storage
-            $oldImage->delete(); // remove old image from database
-        }
     }
 
     private function assignPermissions($request, $user)

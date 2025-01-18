@@ -10,7 +10,8 @@ use Illuminate\Http\Request;
 class PaymentController extends Controller
 {
     use ApiTrait;
-    private $paymentService;
+
+    protected $paymentService;
 
     public function __construct(PaymentService $paymentService)
     {

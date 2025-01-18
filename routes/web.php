@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\CountryCityController;
 use Illuminate\Support\Facades\Route;
@@ -35,9 +36,9 @@ Route::get('api/auth/google/redirect', [SocialiteController::class, 'redirectToP
 Route::get('api/auth/google/callback', [SocialiteController::class, 'handleProviderCallback']); // this route will not work in laragon because redirect url is 127.0.0.1:8000 not starter.test
 
 // // just for testing payment
-// Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
-// Route::get('success', [PaymentController::class, 'success'])->name('success');
-// Route::get('error', [PaymentController::class, 'error'])->name('error');
+Route::post('pay', [PaymentController::class, 'pay'])->name('payment');
+Route::get('success', [PaymentController::class, 'success'])->name('success');
+Route::get('error', [PaymentController::class, 'error'])->name('error');
 
 // just for testing broadcasting
 // Route::get('/', 'App\Http\Controllers\Api\PusherController@index');

@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Dashboard Routes (Admin-Facing)
-Route::group(['middleware' => ['api', 'auth:sanctum', 'can:access_dashboard'], 'prefix' => 'admin'], function () {
+Route::group(['middleware' => ['auth:sanctum', 'can:access_dashboard'], 'prefix' => 'admin'], function () {
 
     // === User Management ===
     Route::apiResource('users', UserController::class);

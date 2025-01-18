@@ -35,7 +35,7 @@ class AuthController extends Controller
 
             $this->handleImageUpload($request, $user);
 
-            event(new Registered($user)); // event to make listener send verification email
+            // event(new Registered($user)); // event to make listener send verification email
 
             return $user;
         });
@@ -51,7 +51,7 @@ class AuthController extends Controller
             return $this->responseJsonFailed( 'Credintials failed' ,  401 );
         } // use guard web cause method attempt doesn't work with guard api
 
-        $token = auth("web")->user()->createToken('MyApp')->plainTextToken; 
+        $token = auth("web")->user()->createToken('MyApp')->plainTextToken;
 
         return $this->responseJsonSuccess([
             'access_token' => $token,
@@ -137,7 +137,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->new_password),
             'remember_token' => null,
         ]);
-        
+
         return $this->responseJsonSuccess([], 'Password reset successfully');
     }
 

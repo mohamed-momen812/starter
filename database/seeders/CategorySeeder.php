@@ -21,7 +21,8 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            Category::create($category);
+            $category = Category::create($category);
+            $category->images()->create(['path' => 'https://via.placeholder.com/150']);
         }
     }
 }
