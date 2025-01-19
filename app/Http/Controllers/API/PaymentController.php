@@ -42,7 +42,8 @@ class PaymentController extends Controller
         try {
             $paymentData = $this->paymentService->completePayment(
                 $request->input('paymentId'),
-                $request->input('PayerID')
+                $request->input('PayerID'),
+                $request->input('token')
             );
 
             return $this->responseJsonSuccess(  $paymentData, 'Payment successful');

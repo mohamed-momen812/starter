@@ -43,12 +43,13 @@ class PaymentService
         }
     }
 
-    public function completePayment($paymentId, $payerId)
+    public function completePayment($paymentId, $payerId, $token)
     {
         try {
             $transaction = $this->gateway->completePurchase([
                 'payer_id'             => $payerId,
                 'transactionReference' => $paymentId,
+                'token'                => $token,               
             ]);
             $response = $transaction->send();
 
